@@ -521,6 +521,8 @@ def menu(ticker: str = ""):
     """Stocks Menu"""
     stocks_controller = StocksController(ticker)
     stocks_controller.call_help(None)
+    jk = True
+    # jk = False
     while True:
         if session and gtff.USE_PROMPT_TOOLKIT:
             completer = NestedCompleter.from_nested_dict(
@@ -531,6 +533,8 @@ def menu(ticker: str = ""):
                 f"{get_flair()} (stocks)> ",
                 completer=completer,
             )
+        elif jk:
+            return stocks_controller
         else:
             an_input = input(f"{get_flair()} (stocks)> ")
 
