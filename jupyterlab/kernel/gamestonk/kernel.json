@@ -1,0 +1,14 @@
+{
+    "argv":
+    [
+        "python",
+        "-m",
+        "gamestonk_kernel",
+        "--matplotlib=inline",
+        "-f",
+        "{connection_file}"
+    ],
+    "display_name": "Gamestonk",
+    "name": "Gamestonk",
+    "language": "python"
+}
