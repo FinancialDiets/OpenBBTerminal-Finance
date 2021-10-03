@@ -209,7 +209,7 @@ Market {('CLOSED', 'OPEN')[b_is_stock_market_open()]}
 
     def call_candle(self, other_args: List[str]):
         """Process candle command"""
-        candle(
+        return candle(
             self.ticker + "." + self.suffix if self.suffix else self.ticker,
             other_args,
         )

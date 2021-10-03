@@ -6,6 +6,14 @@ from ipykernel.kernelbase import Kernel
 from terminal import TerminalController, bootup
 
 
+def _to_svg(fig):
+    """Return a svg image from a matplotlib figure."""
+    imgdata = io.BytesIO()
+    fig.savefig(imgdata, format="svg")
+    imgdata.seek(0)
+    return imgdata.getvalue().decode("utf-8")
+
+
 class GamestonkKernel(Kernel):
     """The Gamestonk Kernel."""
 
@@ -57,12 +65,26 @@ class GamestonkKernel(Kernel):
                     # True - Quit or Reset based on flag
                     # False - Keep loop and show help menu
 
+                    if process_input is not None and isinstance(process_input, tuple):
+                        # We expect to receive a matplotlib figure in `process_input`
+                        fig, _ = process_input
+                        svg_fig = _to_svg(fig)
+
+                        content = {
+                            "data": {"image/svg+xml": svg_fig},
+                            "metadata": {
+                                "image/html": {"width": 600, "height": 400},
+                                "isolated": True,
+                            },
+                        }
+                        self.send_response(self.iopub_socket, "display_data", content)
                     if process_input is not None and not isinstance(
                         process_input, bool
                     ):
-                        # Quit terminal
+                        # We expect to receive a controller in `process_input`
                         self.t_controller = process_input
                     if process_input is True and isinstance(process_input, bool):
+                        # We expect to receive a True boolean in `process_input`
                         self.t_controller = TerminalController()
                         self.t_controller.print_help()
 

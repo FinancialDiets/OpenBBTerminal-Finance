@@ -458,9 +458,10 @@ def candle(s_ticker: str, other_args: List[str]):
             )
 
         if gtff.USE_ION:
-            plt.ion()
+            # plt.ion()
+            plt.ioff()
 
-        mpf.plot(
+        candle_plot = mpf.plot(
             df_stock,
             type="candle",
             mav=(20, 50),
@@ -475,8 +476,10 @@ def candle(s_ticker: str, other_args: List[str]):
             update_width_config=dict(
                 candle_linewidth=1.0, candle_width=0.8, volume_linewidth=1.0
             ),
+            returnfig=True,
         )
         print("")
+        return candle_plot
 
     except Exception as e:
         print(e, "\n")
