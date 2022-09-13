@@ -5,13 +5,13 @@ __docformat__ = "numpy"
 import argparse
 import difflib
 import logging
+import webbrowser
+
 import os
 import platform
 import sys
-import webbrowser
 from typing import List
 import dotenv
-
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit.styles import Style
@@ -63,6 +63,7 @@ class TerminalController(BaseController):
     """Terminal Controller class"""
 
     CHOICES_COMMANDS = [
+        "gui",
         "keys",
         "settings",
         "survey",
@@ -139,6 +140,7 @@ class TerminalController(BaseController):
         mt.add_raw("\n")
         mt.add_cmd("news")
         mt.add_cmd("exe")
+        mt.add_cmd("gui")
         mt.add_raw("\n")
         mt.add_info("_main_menu_")
         mt.add_menu("stocks")
@@ -156,6 +158,18 @@ class TerminalController(BaseController):
         mt.add_menu("reports")
         mt.add_raw("\n")
         console.print(text=mt.menu_text, menu="Home")
+
+    def call_gui(self, other_args: List[str]) -> None:
+        import uvicorn
+
+        parse = argparse.ArgumentParser(
+            add_help=False,
+            prog="gui",
+            description=translate("gui"),
+        )
+        gui_parser = self.parse_known_args_and_warn(parse, other_args)
+        if gui_parser:
+            uvicorn.run("main:app", host="0.0.0.0", port=6969)
 
     def call_news(self, other_args: List[str]) -> None:
         """Process news command"""
