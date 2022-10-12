@@ -2,7 +2,7 @@
 
 Ticker: TSLA
 
-    income             income statements of the company                                [YahooFinance, Polygon, AlphaVantage, FinancialModelingPrep, EODHD]
+    income             income statements of the company                                [Polygon, YahooFinance, AlphaVantage, FinancialModelingPrep, EODHD]
     balance            balance sheet of the company                                    [YahooFinance, Polygon, AlphaVantage, FinancialModelingPrep, EODHD]
     cash               cash flow of the company                                        [YahooFinance, Polygon, AlphaVantage, FinancialModelingPrep, EODHD]
     data               fundamental and technical data of company                       [Finviz]
