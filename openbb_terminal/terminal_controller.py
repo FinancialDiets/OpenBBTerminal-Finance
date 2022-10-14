@@ -81,6 +81,7 @@ class TerminalController(BaseController):
         "portfolio",
         "forex",
         "etf",
+        "maps",
         "reports",
         "dashboards",
         "funds",
@@ -160,6 +161,7 @@ class TerminalController(BaseController):
         mt.add_menu("economy")
         mt.add_menu("forex")
         mt.add_menu("funds")
+        mt.add_menu("maps")
         mt.add_menu("alternative")
         mt.add_raw("\n")
         mt.add_info("_others_")
@@ -171,6 +173,12 @@ class TerminalController(BaseController):
         mt.add_raw("\n")
         console.print(text=mt.menu_text, menu="Home")
         self.update_runtime_choices()
+
+    def call_maps(self, _):
+        """Process maps command"""
+        from openbb_terminal.maps.maps_controller import MapsController
+
+        self.queue = self.load_class(MapsController, self.queue)
 
     def call_news(self, other_args: List[str]) -> None:
         """Process news command"""
