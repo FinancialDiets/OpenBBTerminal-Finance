@@ -47,12 +47,14 @@ def get_folium_kwargs(
     country_shapes: str = COUNTRY_SHAPES,
     scale: list = None,
 ) -> dict:
+
     kwargs = {
         "geo_data": country_shapes,
         "name": "choropleth",
         "columns": ["Country", "Value"],
         "key_on": "feature.properties.name",
-        "fill_color": "YlOrRd",
+        "line_weight": 2,
+        "fill_color": "BuPu",  # BuPu, RdYlGn_r TODO: passar isto para um arg no controller
         "fill_opacity": 0.7,
         "nan_fill_color": "white",
     }
@@ -70,10 +72,14 @@ def display_map(df: pd.DataFrame, legend: str, scale=None) -> None:
     """Display map"""
 
     m = folium.Map(
-        location=[20, 20], zoom_start=3
+        location=[20, 20],
+        zoom_start=3,
+        tiles="cartodbdark_matter",  # cartodbdark_matter, stamentoner this one is also cool
     )  # zoom_control=False, scrollWheelZoom=False, dragging=False
+
     kwargs = get_folium_kwargs(legend=legend, df=df, scale=scale)
     folium.Choropleth(**kwargs).add_to(m)
+
     # save folium to html
     m.save("maps.html")
     file_path = "maps.html"
