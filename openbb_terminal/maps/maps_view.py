@@ -1,6 +1,7 @@
 """ Maps View """
 import logging
 import os
+from turtle import fillcolor
 import webbrowser
 import pandas as pd
 import folium
@@ -46,6 +47,7 @@ def get_folium_kwargs(
     df: pd.DataFrame = None,
     country_shapes: str = COUNTRY_SHAPES,
     scale: list = None,
+    fill_color: str = "RdYlGn_r",
 ) -> dict:
 
     kwargs = {
@@ -54,7 +56,7 @@ def get_folium_kwargs(
         "columns": ["Country", "Value"],
         "key_on": "feature.properties.name",
         "line_weight": 2,
-        "fill_color": "RdYlGn_r",  # BuPu, RdYlGn_r TODO: passar isto para um arg no controller
+        "fill_color": fill_color,  # BuPu, RdYlGn_r TODO: passar isto para um arg no controller
         "fill_opacity": 0.5,
         "nan_fill_color": "white",
     }
@@ -68,7 +70,12 @@ def get_folium_kwargs(
     return kwargs
 
 
-def display_map(df: pd.DataFrame, legend: str, scale=None) -> None:
+def display_map(
+    df: pd.DataFrame,
+    legend: str,
+    scale=None,
+    fill_color: str = "RdYlGn_r",
+) -> None:
     """Display map"""
 
     m = folium.Map(
@@ -77,7 +84,7 @@ def display_map(df: pd.DataFrame, legend: str, scale=None) -> None:
         tiles="cartodbdark_matter",  # cartodbdark_matter, stamentoner this one is also cool
     )  # zoom_control=False, scrollWheelZoom=False, dragging=False
 
-    kwargs = get_folium_kwargs(legend=legend, df=df, scale=scale)
+    kwargs = get_folium_kwargs(legend=legend, df=df, scale=scale, fill_color=fill_color)
     folium.Choropleth(**kwargs).add_to(m)
 
     # save folium to html
@@ -195,6 +202,32 @@ def display_macro(indicator: str = "RGDP", export: str = ""):
         export,
         os.path.dirname(os.path.abspath(__file__)),
         f"macro_{indicator}",
+        df,
+    )
+
+
+@log_start_end(log=logger)
+def display_openbb(export: str = ""):
+    """Opens macro data map website in a browser. [Source: EconDB]"""
+
+    d = {
+        "United Kingdom": 3,
+        "United States of America": 6,
+        "Portugal": 5,
+        "Canada": 2,
+        "Montenegro": 1,
+        "France": 1,
+        "Netherlands": 1,
+        "Romania": 1,
+        "Sweden": 1,
+    }
+    df = pd.DataFrame(data=d.items(), columns=["Country", "Value"])
+    myscale = (df["Value"].quantile((0, 0.25, 0.5, 0.75, 1))).tolist()
+    display_map(df, "OpenBB", myscale, "BuPu")
+    export_data(
+        export,
+        os.path.dirname(os.path.abspath(__file__)),
+        "openbb",
         df,
     )
 

@@ -14,6 +14,7 @@ from openbb_terminal.maps.maps_view import (
     display_interest_rates,
     display_map_explorer,
     display_macro,
+    display_openbb,
 )
 from openbb_terminal.economy.econdb_model import PARAMETERS
 from openbb_terminal.menu import session
@@ -28,7 +29,7 @@ class MapsController(BaseController):
     """Maps Controller class"""
 
     CHOICES_COMMANDS: List[str] = []
-    CHOICES_MENUS = ["bh", "ir", "me", "macro"]
+    CHOICES_MENUS = ["bh", "ir", "me", "macro", "openbb"]
     PATH = "/maps/"
 
     def __init__(self, queue: List[str] = None):
@@ -55,6 +56,7 @@ class MapsController(BaseController):
         mt.add_cmd("ir")
         mt.add_cmd("me")
         mt.add_cmd("macro")
+        mt.add_cmd("openbb")
         console.print(text=mt.menu_text, menu="Maps")
 
     @log_start_end(log=logger)
@@ -88,32 +90,6 @@ class MapsController(BaseController):
         )
         if ns_parser:
             display_interest_rates(export=ns_parser.export)
-
-    @log_start_end(log=logger)
-    def call_macro(self, other_args: List[str]):
-        """Process macro command"""
-        parser = argparse.ArgumentParser(
-            add_help=False,
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-            prog="macro",
-            description="Display macro indicator per country.",
-        )
-        parser.add_argument(
-            "-i",
-            "--indicator",
-            action="store",
-            dest="indicator",
-            type=str,
-            default="CPI",
-            help="Indicator to display",
-        )
-        if other_args and "-" not in other_args[0][0]:
-            other_args.insert(0, "-i")
-        ns_parser = self.parse_known_args_and_warn(
-            parser, other_args, export_allowed=EXPORT_ONLY_RAW_DATA_ALLOWED, raw=True
-        )
-        if ns_parser:
-            display_macro(ns_parser.indicator, export=ns_parser.export)
 
     @log_start_end(log=logger)
     def call_me(self, other_args: List[str]):
@@ -151,3 +127,44 @@ class MapsController(BaseController):
                 return
 
             display_map_explorer(coordinates)
+
+    @log_start_end(log=logger)
+    def call_macro(self, other_args: List[str]):
+        """Process macro command"""
+        parser = argparse.ArgumentParser(
+            add_help=False,
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+            prog="macro",
+            description="Display macro indicator per country.",
+        )
+        parser.add_argument(
+            "-i",
+            "--indicator",
+            action="store",
+            dest="indicator",
+            type=str,
+            default="CPI",
+            help="Indicator to display",
+        )
+        if other_args and "-" not in other_args[0][0]:
+            other_args.insert(0, "-i")
+        ns_parser = self.parse_known_args_and_warn(
+            parser, other_args, export_allowed=EXPORT_ONLY_RAW_DATA_ALLOWED, raw=True
+        )
+        if ns_parser:
+            display_macro(ns_parser.indicator, export=ns_parser.export)
+
+    @log_start_end(log=logger)
+    def call_openbb(self, other_args: List[str]):
+        """Process openbb command"""
+        parser = argparse.ArgumentParser(
+            add_help=False,
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+            prog="openbb",
+            description="Display openbb maintainers by country.",
+        )
+        ns_parser = self.parse_known_args_and_warn(
+            parser, other_args, export_allowed=EXPORT_ONLY_RAW_DATA_ALLOWED, raw=True
+        )
+        if ns_parser:
+            display_openbb(export=ns_parser.export)
