@@ -54,8 +54,8 @@ def get_folium_kwargs(
         "columns": ["Country", "Value"],
         "key_on": "feature.properties.name",
         "line_weight": 2,
-        "fill_color": "BuPu",  # BuPu, RdYlGn_r TODO: passar isto para um arg no controller
-        "fill_opacity": 0.7,
+        "fill_color": "RdYlGn_r",  # BuPu, RdYlGn_r TODO: passar isto para um arg no controller
+        "fill_opacity": 0.5,
         "nan_fill_color": "white",
     }
     if not df.empty:
