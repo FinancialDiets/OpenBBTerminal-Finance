@@ -69,7 +69,9 @@ def get_folium_kwargs(
 def display_map(df: pd.DataFrame, legend: str, scale=None) -> None:
     """Display map"""
 
-    m = folium.Map()  # zoom_control=False, scrollWheelZoom=False, dragging=False
+    m = folium.Map(
+        location=[20, 20], zoom_start=3
+    )  # zoom_control=False, scrollWheelZoom=False, dragging=False
     kwargs = get_folium_kwargs(legend=legend, df=df, scale=scale)
     folium.Choropleth(**kwargs).add_to(m)
     # save folium to html
