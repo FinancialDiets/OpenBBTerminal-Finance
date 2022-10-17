@@ -155,7 +155,6 @@ def display_interest_rates(export: str = ""):
 def get_macro_data(
     parameters: List[str],
     countries: List[str],
-    date: str = None,
     change: bool = False,
     periods: int = 12,
 ) -> pd.DataFrame:
@@ -164,7 +163,6 @@ def get_macro_data(
     if change:
         df = df.pct_change(periods=periods) * 100
 
-    # df = pd.DataFrame(df.loc[date])
     df = pd.DataFrame(df.iloc[-1])
     df = df.reset_index()
     df.drop(df.columns[[1]], axis=1, inplace=True)
@@ -176,11 +174,10 @@ def get_macro_data(
 
 @log_start_end(log=logger)
 def display_macro(indicator: str = "RGDP", export: str = ""):
-    """Opens Finviz map website in a browser. [Source: Finviz]"""
+    """Opens macro data map website in a browser. [Source: EconDB]"""
 
     countries = list(COUNTRY_CODES.keys())
-    date = "2022-08-01"
-    df = get_macro_data([indicator], countries, date, change=True, periods=12)
+    df = get_macro_data([indicator], countries, change=True, periods=12)
 
     df["Country"] = df["Country"].replace("United_States", "United States of America")
     df["Country"] = df["Country"].replace("_", " ")
@@ -189,7 +186,7 @@ def display_macro(indicator: str = "RGDP", export: str = ""):
     export_data(
         export,
         os.path.dirname(os.path.abspath(__file__)),
-        "cpi",
+        f"macro_{indicator}",
         df,
     )
 
