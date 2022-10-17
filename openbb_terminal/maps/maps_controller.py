@@ -13,7 +13,9 @@ from openbb_terminal.maps.maps_view import (
     display_bitcoin_hash,
     display_interest_rates,
     display_map_explorer,
+    display_macro,
 )
+from openbb_terminal.economy.econdb_model import PARAMETERS
 from openbb_terminal.menu import session
 from openbb_terminal.parent_classes import BaseController
 from openbb_terminal.rich_config import console, MenuText
@@ -26,7 +28,7 @@ class MapsController(BaseController):
     """Maps Controller class"""
 
     CHOICES_COMMANDS: List[str] = []
-    CHOICES_MENUS = ["bh", "ir", "me"]
+    CHOICES_MENUS = ["bh", "ir", "me", "macro"]
     PATH = "/maps/"
 
     def __init__(self, queue: List[str] = None):
@@ -34,11 +36,17 @@ class MapsController(BaseController):
         super().__init__(queue)
 
         if session and obbff.USE_PROMPT_TOOLKIT:
-            choices: dict = {c: {} for c in self.controller_choices}
-            choices["support"] = self.SUPPORT_CHOICES
-            choices["about"] = self.ABOUT_CHOICES
+            self.choices: dict = {c: {} for c in self.controller_choices}
 
-            self.completer = NestedCompleter.from_nested_dict(choices)
+            self.choices["macro"] = {
+                "--indicator": {c: {} for c in PARAMETERS},
+                "-i": "--indicator",
+            }
+
+            self.choices["support"] = self.SUPPORT_CHOICES
+            self.choices["about"] = self.ABOUT_CHOICES
+
+            self.completer = NestedCompleter.from_nested_dict(self.choices)
 
     def print_help(self):
         """Print help"""
@@ -46,6 +54,7 @@ class MapsController(BaseController):
         mt.add_cmd("bh")
         mt.add_cmd("ir")
         mt.add_cmd("me")
+        mt.add_cmd("macro")
         console.print(text=mt.menu_text, menu="Maps")
 
     @log_start_end(log=logger)
@@ -79,6 +88,32 @@ class MapsController(BaseController):
         )
         if ns_parser:
             display_interest_rates(export=ns_parser.export)
+
+    @log_start_end(log=logger)
+    def call_macro(self, other_args: List[str]):
+        """Process macro command"""
+        parser = argparse.ArgumentParser(
+            add_help=False,
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+            prog="macro",
+            description="Display macro indicator per country.",
+        )
+        parser.add_argument(
+            "-i",
+            "--indicator",
+            action="store",
+            dest="indicator",
+            type=str,
+            default="CPI",
+            help="Indicator to display",
+        )
+        if other_args and "-" not in other_args[0][0]:
+            other_args.insert(0, "-i")
+        ns_parser = self.parse_known_args_and_warn(
+            parser, other_args, export_allowed=EXPORT_ONLY_RAW_DATA_ALLOWED, raw=True
+        )
+        if ns_parser:
+            display_macro(ns_parser.indicator, export=ns_parser.export)
 
     @log_start_end(log=logger)
     def call_me(self, other_args: List[str]):

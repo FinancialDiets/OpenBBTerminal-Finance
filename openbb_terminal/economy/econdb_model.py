@@ -420,6 +420,7 @@ SCALES = {
     "Thousands": 1_000,
     "Tens of thousands": 10_000,
     "Millions": 1_000_000,
+    "Tens of millions": 10_000_000,
     "Hundreds of millions": 100_000_000,
     "Billions": 1_000_000_000,
     "Units": 1,
@@ -541,21 +542,23 @@ def get_macro_data(
 
         r = requests.get(f"https://www.econdb.com/series/context/?tickers={code}")
         res_json = r.json()
+        df = pd.DataFrame()
         if res_json:
-            data = res_json[0]
-            scale = data["td"]["scale"]
-            units = data["td"]["units"]
+            if res_json[0]["dataarray"]:
+                data = res_json[0]
+                scale = data["td"]["scale"]
+                units = data["td"]["units"]
 
-            df = pd.DataFrame(data["dataarray"])
+                df = pd.DataFrame(data["dataarray"])
 
-            df = df.set_index(pd.to_datetime(df["date"]))[code] * SCALES[scale]
-            df = df.sort_index().dropna()
+                df = df.set_index(pd.to_datetime(df["date"]))[code] * SCALES[scale]
+                df = df.sort_index().dropna()
 
-            # Since a percentage is done through differences, the first value is NaN
-            if transform in ["TPOP", "TOYA"]:
-                df = df.iloc[1:]
+                # Since a percentage is done through differences, the first value is NaN
+                if transform in ["TPOP", "TOYA"]:
+                    df = df.iloc[1:]
 
-        if not res_json or df.empty:
+        if df.empty:
             console.print(
                 f"No data available for {parameter} ({PARAMETERS[parameter]['name']}) "
                 f"of country {country.replace('_', ' ')}"

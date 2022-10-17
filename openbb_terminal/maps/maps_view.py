@@ -9,6 +9,11 @@ from openbb_terminal.decorators import log_start_end
 from openbb_terminal.helper_funcs import export_data
 from openbb_terminal.rich_config import console
 
+from openbb_terminal.economy.econdb_model import (
+    get_aggregated_macro_data,
+    COUNTRY_CODES,
+)
+
 logger = logging.getLogger(__name__)
 
 COUNTRY_SHAPES = "https://raw.githubusercontent.com/python-visualization/folium/master/examples/data/world-countries.json"
@@ -142,6 +147,49 @@ def display_interest_rates(export: str = ""):
         export,
         os.path.dirname(os.path.abspath(__file__)),
         "ir",
+        df,
+    )
+
+
+@log_start_end(log=logger)
+def get_macro_data(
+    parameters: List[str],
+    countries: List[str],
+    date: str = None,
+    change: bool = False,
+    periods: int = 12,
+) -> pd.DataFrame:
+
+    df, _, _ = get_aggregated_macro_data(parameters, countries)
+    if change:
+        df = df.pct_change(periods=periods) * 100
+
+    # df = pd.DataFrame(df.loc[date])
+    df = pd.DataFrame(df.iloc[-1])
+    df = df.reset_index()
+    df.drop(df.columns[[1]], axis=1, inplace=True)
+    df.columns.values[0] = "Country"
+    df.columns.values[1] = "Value"
+
+    return df
+
+
+@log_start_end(log=logger)
+def display_macro(indicator: str = "RGDP", export: str = ""):
+    """Opens Finviz map website in a browser. [Source: Finviz]"""
+
+    countries = list(COUNTRY_CODES.keys())
+    date = "2022-08-01"
+    df = get_macro_data([indicator], countries, date, change=True, periods=12)
+
+    df["Country"] = df["Country"].replace("United_States", "United States of America")
+    df["Country"] = df["Country"].replace("_", " ")
+    myscale = (df["Value"].quantile((0, 0.25, 0.5, 0.75, 1))).tolist()
+    display_map(df, f"{indicator}", myscale)
+    export_data(
+        export,
+        os.path.dirname(os.path.abspath(__file__)),
+        "cpi",
         df,
     )
 
