@@ -9,6 +9,8 @@ from typing import List, Tuple
 from openbb_terminal.decorators import log_start_end
 from openbb_terminal.helper_funcs import export_data
 from openbb_terminal.rich_config import console
+import yfinance
+from datetime import datetime, timedelta
 
 from openbb_terminal.economy.econdb_model import (
     get_aggregated_macro_data,
@@ -225,6 +227,36 @@ def display_openbb(export: str = ""):
         "Sweden": 1,
     }
     df = pd.DataFrame(data=d.items(), columns=["Country", "Value"])
+    myscale = (df["Value"].quantile((0, 0.25, 0.5, 0.75, 1))).tolist()
+    display_map(df, "OpenBB", myscale, "BuPu")
+    export_data(
+        export,
+        os.path.dirname(os.path.abspath(__file__)),
+        "openbb",
+        df,
+    )
+
+
+@log_start_end(log=logger)
+def display_stocks(export: str = ""):
+    """Opens macro data map website in a browser. [Source: EconDB]"""
+
+    world_indices = {"United States of America": "^GSPC", "Portugal": "PSI20.LS"}
+
+    df = yfinance.download(
+        list(world_indices.values()),
+        start=datetime.today() - timedelta(days=1),
+        threads=False,
+        progress=False,
+    )["Adj Close"]
+
+    df.columns = list(world_indices.keys())
+    df = df.pct_change(1) * 100
+    df.dropna(inplace=True)
+    df = df.T
+    df = df.reset_index()
+    df.columns.values[0] = "Country"
+    df.columns.values[1] = "Value"
     myscale = (df["Value"].quantile((0, 0.25, 0.5, 0.75, 1))).tolist()
     display_map(df, "OpenBB", myscale, "BuPu")
     export_data(

@@ -15,6 +15,7 @@ from openbb_terminal.maps.maps_view import (
     display_map_explorer,
     display_macro,
     display_openbb,
+    display_stocks,
 )
 from openbb_terminal.economy.econdb_model import PARAMETERS
 from openbb_terminal.menu import session
@@ -29,7 +30,7 @@ class MapsController(BaseController):
     """Maps Controller class"""
 
     CHOICES_COMMANDS: List[str] = []
-    CHOICES_MENUS = ["bh", "ir", "me", "macro", "openbb"]
+    CHOICES_MENUS = ["bh", "ir", "me", "macro", "openbb", "stocks"]
     PATH = "/maps/"
 
     def __init__(self, queue: List[str] = None):
@@ -57,6 +58,7 @@ class MapsController(BaseController):
         mt.add_cmd("me")
         mt.add_cmd("macro")
         mt.add_cmd("openbb")
+        mt.add_cmd("stocks")
         console.print(text=mt.menu_text, menu="Maps")
 
     @log_start_end(log=logger)
@@ -168,3 +170,18 @@ class MapsController(BaseController):
         )
         if ns_parser:
             display_openbb(export=ns_parser.export)
+
+    @log_start_end(log=logger)
+    def call_stocks(self, other_args: List[str]):
+        """Process openbb command"""
+        parser = argparse.ArgumentParser(
+            add_help=False,
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+            prog="stocks",
+            description="Display openbb maintainers by country.",
+        )
+        ns_parser = self.parse_known_args_and_warn(
+            parser, other_args, export_allowed=EXPORT_ONLY_RAW_DATA_ALLOWED, raw=True
+        )
+        if ns_parser:
+            display_stocks(export=ns_parser.export)
