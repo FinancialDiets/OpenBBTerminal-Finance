@@ -9,8 +9,8 @@ from typing import List, Tuple
 from openbb_terminal.decorators import log_start_end
 from openbb_terminal.helper_funcs import export_data
 from openbb_terminal.rich_config import console
-import yfinance
-from datetime import datetime, timedelta
+from tqdm import tqdm
+import investpy
 
 from openbb_terminal.economy.econdb_model import (
     get_aggregated_macro_data,
@@ -49,7 +49,7 @@ def get_folium_kwargs(
     df: pd.DataFrame = None,
     country_shapes: str = COUNTRY_SHAPES,
     scale: list = None,
-    fill_color: str = "RdYlGn_r",
+    fill_color: str = "RdYlGn",
 ) -> dict:
 
     kwargs = {
@@ -241,24 +241,50 @@ def display_openbb(export: str = ""):
 def display_stocks(export: str = ""):
     """Opens macro data map website in a browser. [Source: EconDB]"""
 
-    world_indices = {"United States of America": "^GSPC", "Portugal": "PSI20.LS"}
+    # Using yfinance is better, we can pull all data at once. We just need this
+    # dictionary populated.
+    #
+    # world_indices = {"United States of America": "^GSPC", "Portugal": "PSI20.LS"}
 
-    df = yfinance.download(
-        list(world_indices.values()),
-        start=datetime.today() - timedelta(days=1),
-        threads=False,
-        progress=False,
-    )["Adj Close"]
+    # df = yfinance.download(
+    #     list(world_indices.values()),
+    #     start=datetime.today() - timedelta(days=1),
+    #     threads=False,
+    #     progress=False,
+    # )["Adj Close"]
 
-    df.columns = list(world_indices.keys())
-    df = df.pct_change(1) * 100
-    df.dropna(inplace=True)
-    df = df.T
+    # df.columns = list(world_indices.keys())
+    # df = df.pct_change(1) * 100
+    # df.dropna(inplace=True)
+    # df = df.T
+
+    countries = investpy.get_index_countries()
+    d = {}
+    no_data_countries = []
+    for country in tqdm(countries, desc="Downloading"):
+        try:
+            performance = (
+                investpy.indices.get_indices_overview(country)
+                .iloc[0]["change_percentage"]
+                .replace("%", "")
+            )
+            d[country] = float(performance)
+        except Exception as _:
+            no_data_countries.append(country.title())
+
+    if no_data_countries:
+        s = ", ".join(no_data_countries)
+        console.print(f"[red]No data for {s}.[/red]")
+    df = pd.DataFrame(data=d.values(), index=d.keys())
+
     df = df.reset_index()
     df.columns.values[0] = "Country"
     df.columns.values[1] = "Value"
+    df["Country"] = df["Country"].str.title()
+    df["Country"] = df["Country"].replace("United States", "United States of America")
+
     myscale = (df["Value"].quantile((0, 0.25, 0.5, 0.75, 1))).tolist()
-    display_map(df, "OpenBB", myscale, "BuPu")
+    display_map(df, "OpenBB", myscale, "RdYlGn")
     export_data(
         export,
         os.path.dirname(os.path.abspath(__file__)),
